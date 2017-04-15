@@ -1,5 +1,5 @@
 // this is article_db.js 
-var Article = require('./model.js').Article
+var Article = require('./models.js').Article
 
 function find(req, res) {
      findByAuthor(req.params.user, function(items) {
