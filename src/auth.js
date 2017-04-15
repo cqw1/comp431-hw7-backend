@@ -1,14 +1,22 @@
 let md5 = require('md5');
 let index = require('../index');
-var redis = require('redis').createClient(process.env.REDIS_URL)
+let redis = require('redis').createClient(process.env.REDIS_URL);
+let models = require('./db/models.js');
 
 let passport = index.passport;
-var exports = module.exports = {};
+let exports = module.exports = {};
 
 let authRequests = {}
 let authTokens = {}
 
 let sessions = {};
+
+/*
+models.User.find({username: "cqw1"}).exec(function(err, users) {
+    console.log('mongoose users with username: cqw1');
+    console.log(users);
+})
+*/
 
 const postLogin = (req, res) => {
     const username = req.body.username;

@@ -1,4 +1,4 @@
-// this is dbarticle.js 
+// this is article_db.js 
 var Article = require('./model.js').Article
 
 function find(req, res) {

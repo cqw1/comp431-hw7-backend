@@ -4,6 +4,10 @@ let cookieParser = require('cookie-parser')
 let passport = require('passport')
 let GoogleStrategy = require( 'passport-google-oauth2' ).Strategy;
 
+if (process.env.NODE_ENV !== 'production') {
+    require('dot-env');
+}
+
 
 //app.use(cookieParser());
 
