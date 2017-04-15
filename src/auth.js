@@ -1,6 +1,6 @@
 let md5 = require('md5');
 let index = require('../index');
-let redis = require('redis').createClient(process.env.REDIS_URL);
+//let redis = require('redis').createClient(process.env.REDIS_URL);
 let models = require('./db/models.js');
 
 let passport = index.passport;
@@ -102,10 +102,12 @@ const loginSuccess = (req, res) => {
     index.user.username = username;
     sessions[username] = username + Date.now();
 
+    /*
     redis.hmset(sessions[username], index.user);
     redis.hgetall(sessions[username], function(err, userObj) {
         console.log(sessions[username] + ' mapped to ' + userObj);
     })
+    */
 
 
     // cookie lasts for 1 hour
