@@ -4,7 +4,6 @@ let redis = require('redis').createClient(process.env.REDIS_URL);
 let models = require('./db/models.js');
 
 let passport = index.passport;
-let exports = module.exports = {};
 
 let authRequests = {}
 let authTokens = {}
@@ -116,6 +115,8 @@ const loginSuccess = (req, res) => {
     var msg = {username: req.body.username, result: 'success'};
     res.send(msg);
 }
+
+var exports = module.exports = {};
 
 exports.endpoints = function(app) {
     app.post('/register', postRegister),
