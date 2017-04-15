@@ -1,0 +1,20 @@
+For python you need to install requests...
+
+Download this
+
+    wget https://bootstrap.pypa.io/get-pip.py
+     -OR-
+    curl https://bootstrap.pypa.io/get-pip.py > get-pip.py
+
+sudo python get-pip.py
+
+sudo pip install requests
+
+You need this endpoint in your server (index.js is fine)
+     GET / => { hello: 'world'}
+
+
+If server not running try: heroku logs
+look for the source of the error..
+"Cannot find module ..."  -- means not in package.json
+so:  npm install <packagename> --save
