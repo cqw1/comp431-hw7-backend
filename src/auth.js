@@ -10,20 +10,13 @@ let authTokens = {}
 
 let sessions = {};
 
-/*
-models.User.find({username: "cqw1"}).exec(function(err, users) {
-    console.log('mongoose users with username: cqw1');
-    console.log(users);
-})
-*/
+let secretMessage = "oi183u4ms12on";
+
 
 const postLogin = (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
 
-    if (!username || !password) {
-        res.sendStatus(400);
-        return;
+    if (!req.body.username || !req.body.password) {
+        return res.sendStatus(400);
     }
 
     /*
@@ -34,32 +27,44 @@ const postLogin = (req, res) => {
     }
     */
 
-    if (index.user.username != req.body.username) {
-        res.sendStatus(401);
-        return;
-    }
+    models.User.find({username: req.body.username}).exec(function(err, users) {
+        if (users.length > 0) {
+            var hash = md5(req.body.password + users[0].salt);
+            if (users[0].hash == hash) {
+                loginSuccess(req, res);
+            } else {
+                return res.sendStatus(401);
+            }
+        } else {
+            return res.sendStatus(401);
+        }
+    });
 
-    var hash = md5(req.body.password + index.user.salt);
-    if (index.user.hash != hash) {
-        res.sendStatus(401);
-        return;
-    }
+    console.log('made it');
 
-    loginSuccess(req, res);
 }
 
 const postRegister = (req, res) => {
-    index.user.username = req.body.username;
-    var salt = 'salty';
-    index.user.salt = salt;
-    index.user.hash = md5(req.body.password + salt);
+    let salt = md5(req.body.username + Date.now());
 
-    const msg = {username: req.body.username, result: 'success'};
-    res.send(msg);
+    let newUser = new models.User({
+        username: req.body.username,
+        salt: salt,
+        hash: md5(req.body.password + salt)
+    })
+
+    newUser.save(function(err, newUser) {
+        if (err) {
+            return console.error(err);
+        }
+
+        let msg = {username: newUser.username, result: 'success'};
+        return res.send(msg);
+    })
 }
 
 const putLogout = (req, res) => {
-    res.send('OK');
+    return res.send('OK');
 }
 
 const putPassword = (req, res) => {
@@ -93,14 +98,17 @@ const authGoogleCallback = passport.authenticate('google', {
 });
 
 const loginSuccess = (req, res) => {
+    /*
     let username;
     if (req.body.username) {
         username = req.body.username;
     } else {
         username = 'default user';
     }
+
     index.user.username = username;
-    sessions[username] = username + Date.now();
+    */
+
 
     /*
     redis.hmset(sessions[username], index.user);
@@ -109,13 +117,15 @@ const loginSuccess = (req, res) => {
     })
     */
 
+    var sessionId = md5(secretMessage + req.body.username + Date.now());
+    sessions[sessionId] = req.body.username;
 
     // cookie lasts for 1 hour
-    res.cookie('sessionId', username,
+    res.cookie('sessionId', sessionId,
             {maxAge: 3600 * 1000, httpOnly: true});
 
     var msg = {username: req.body.username, result: 'success'};
-    res.send(msg);
+    return res.send(msg);
 }
 
 var exports = module.exports = {};

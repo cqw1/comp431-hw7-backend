@@ -108,7 +108,7 @@ var cors = function(req, res, next) {
     if (req.method == 'OPTIONS') {
         res.status(200);
     }    
-    next();
+    return next();
 }
 
 app.use(cors);

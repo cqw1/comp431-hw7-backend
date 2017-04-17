@@ -1,4 +1,5 @@
-const index = require('../index');
+var index = require('../index');
+var models = require('./db/models.js');
 
 const sampleArticle = {
     '_id': 0,
@@ -44,6 +45,13 @@ let articles = [
 ];
 
 const getArticles = (req, res) => {
+    /*
+    models.Article.find({author: "stub username"}).exec(function(err, articles) {
+        console.log(articles);
+        console.log(articles.length);
+    });
+    */
+
     if (req.params.id) {
         res.send({
             'articles': articles.filter(function(el) {

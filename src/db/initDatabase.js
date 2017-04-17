@@ -15,7 +15,7 @@ fs.readFile('./cred.json', function(err, data) {
 })
 
 function login() {
-	request({ url: cred.dummy_url + '/login', method: 'POST',
+	request({ url: cred.dummy_URI + '/login', method: 'POST',
 		json: { "username": cred.dummy_username, "password": cred.dummy_password }
 	}, function (err, res, body) {
 		if (err || body.result !== "success") {
@@ -28,7 +28,7 @@ function login() {
 
 var articlesToPost;
 function getArticles(cookie) {	
-	request({ url: cred.dummy_url + '/articles', method: 'GET', json:true }, function(err, res, body) {
+	request({ url: cred.dummy_URI + '/articles', method: 'GET', json:true }, function(err, res, body) {
 		if (err) {
 			console.error("There was an error grabbing articles from the dummy server", err)
 			process.exit(1)
@@ -40,7 +40,7 @@ function getArticles(cookie) {
 }
 
 function loginToSite() {
-	request({ url: cred.site_url + '/login', method: 'POST',
+	request({ url: cred.site_URI + '/login', method: 'POST',
 		json: { "username": cred.site_username, "password": cred.site_password }
 	}, function(err, res, body) {
 		if (err) {
@@ -54,7 +54,7 @@ function loginToSite() {
 function sendArticles() {	
 	var article = articlesToPost.pop()
 	if (article) {		
-		request({ url: cred.site_url + '/article', method: 'POST', json: article }, function(err, res, body) {
+		request({ url: cred.site_URI + '/article', method: 'POST', json: article }, function(err, res, body) {
 			if (err) {
 				console.error("There was an error POSTing an article to YOUR server.  article=" + article, err)
 				process.exit(1)
@@ -69,7 +69,7 @@ function sendArticles() {
 }
 
 function getArticleCount(next) {
-	request({ url: cred.site_url + '/articles', method: 'GET', json:true }, function(err, res, body) {
+	request({ url: cred.site_URI + '/articles', method: 'GET', json:true }, function(err, res, body) {
 		if (err) {
 			console.error("There was an error grabbing articles from YOUR server", err)
 			process.exit(1)
