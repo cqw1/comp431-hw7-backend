@@ -2,13 +2,15 @@ let md5 = require('md5');
 let index = require('../index');
 //let redis = require('redis').createClient(process.env.REDIS_URL);
 let models = require('./db/models.js');
+let sessions = require('../index.js').sessions;
+var isLoggedIn = require('../index.js').isLoggedIn;
 
 let passport = index.passport;
 
 let authRequests = {}
 let authTokens = {}
 
-let sessions = {};
+//let sessions = {};
 
 let secretMessage = "oi183u4ms12on";
 
@@ -39,9 +41,6 @@ const postLogin = (req, res) => {
             return res.sendStatus(401);
         }
     });
-
-    console.log('made it');
-
 }
 
 const postRegister = (req, res) => {
@@ -64,6 +63,12 @@ const postRegister = (req, res) => {
 }
 
 const putLogout = (req, res) => {
+    delete sessions[req.cookies['sessionId']];
+    res.clearCookie('sessionId');
+
+    console.log('postLogout sessions');
+    console.log(sessions);
+
     return res.send('OK');
 }
 
@@ -97,6 +102,18 @@ const authGoogleCallback = passport.authenticate('google', {
     failureRedirect: '/login'
 });
 
+const getUsername = (req) => {
+    var username;
+
+    if (req.body.username) {
+        username = req.body.username;
+    } else if (req.user.username) {
+        username = req.user.username;
+    }
+
+    return username;
+}
+
 const loginSuccess = (req, res) => {
     /*
     let username;
@@ -117,15 +134,23 @@ const loginSuccess = (req, res) => {
     })
     */
 
-    var sessionId = md5(secretMessage + req.body.username + Date.now());
-    sessions[sessionId] = req.body.username;
+    var username = getUsername(req);
+    var sessionId = md5(secretMessage + username + Date.now());
 
-    // cookie lasts for 1 hour
-    res.cookie('sessionId', sessionId,
-            {maxAge: 3600 * 1000, httpOnly: true});
+    models.User.find({username: req.body.username}).exec(function(err, users) {
+        if (users.length > 0) {
+            sessions[sessionId] = users[0];
 
-    var msg = {username: req.body.username, result: 'success'};
-    return res.send(msg);
+            // cookie lasts for 1 hour
+            res.cookie('sessionId', sessionId,
+                    {maxAge: 3600 * 1000, httpOnly: true});
+
+            var msg = {username: req.body.username, result: 'success'};
+            return res.send(msg);
+        } else {
+            return res.sendStatus(401);
+        }
+    });
 }
 
 var exports = module.exports = {};
@@ -133,7 +158,7 @@ var exports = module.exports = {};
 exports.endpoints = function(app) {
     app.post('/register', postRegister),
     app.post('/login', postLogin),
-    app.put('/logout', putLogout),
+    app.put('/logout', isLoggedIn, putLogout),
     app.put('/password', putPassword),
     app.get('/auth/google', authGoogle),
     app.get('/auth/google/callback', authGoogleCallback),

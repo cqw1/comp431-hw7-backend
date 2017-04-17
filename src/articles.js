@@ -1,5 +1,6 @@
 var index = require('../index');
 var models = require('./db/models.js');
+var isLoggedIn = require('../index.js').isLoggedIn;
 
 const sampleArticle = {
     '_id': 0,

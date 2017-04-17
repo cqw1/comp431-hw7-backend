@@ -8,10 +8,10 @@ if (process.env.NODE_ENV !== 'production') {
     require('dot-env');
 }
 
-
-//app.use(cookieParser());
-
 var exports = module.exports = {};
+
+var sessions =  {}
+exports.sessions = sessions;
 
 exports.passport = passport;
 
@@ -111,8 +111,27 @@ var cors = function(req, res, next) {
     return next();
 }
 
+const isLoggedIn = (req, res, next) => {
+
+    if (req.cookies['sessionId']) {
+        var sessionId = req.cookies['sessionId'];
+
+        if (sessionId in sessions) {
+            req.user = sessions[sessionId];
+            console.log(sessionId);
+            console.log(req.user);
+            return next();
+
+        }
+    }
+    
+    return res.sendStatus(401);
+}
+exports.isLoggedIn = isLoggedIn;
+
 app.use(cors);
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
 
