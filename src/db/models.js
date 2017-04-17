@@ -11,7 +11,6 @@ let commentSchema = new mongoose.Schema({
 });
 
 let articleSchema = new mongoose.Schema({
-	id: Number, 
     author: String, 
     img: String, 
     date: Date, 

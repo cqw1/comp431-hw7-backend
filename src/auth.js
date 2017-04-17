@@ -3,7 +3,6 @@ let index = require('../index');
 //let redis = require('redis').createClient(process.env.REDIS_URL);
 let models = require('./db/models.js');
 let sessions = require('../index.js').sessions;
-var isLoggedIn = require('../index.js').isLoggedIn;
 
 let passport = index.passport;
 
@@ -14,8 +13,29 @@ let authTokens = {}
 
 let secretMessage = "oi183u4ms12on";
 
+var exports = module.exports = {};
+
+const isLoggedIn = (req, res, next) => {
+
+    if (req.cookies['sessionId']) {
+        var sessionId = req.cookies['sessionId'];
+
+        if (sessionId in sessions) {
+            req.user = sessions[sessionId];
+            return next();
+
+        }
+    }
+    
+    return res.sendStatus(401);
+}
+exports.isLoggedIn = isLoggedIn;
+
 
 const postLogin = (req, res) => {
+
+    // Clear all articles
+    //models.Article.collection.drop();
 
     if (!req.body.username || !req.body.password) {
         return res.sendStatus(400);
@@ -66,19 +86,44 @@ const putLogout = (req, res) => {
     delete sessions[req.cookies['sessionId']];
     res.clearCookie('sessionId');
 
-    console.log('postLogout sessions');
-    console.log(sessions);
-
     return res.send('OK');
 }
 
 const putPassword = (req, res) => {
+    let newSalt = req.user.username + Date.now();
+    let newHash = md5(req.body.password + newSalt);
+
+    models.User.remove({username: req.user.username}).exec(function(err, result) {
+        if (err) {
+            return console.error(err);
+        }
+
+        let newUser = new models.User({
+            username: req.user.username,
+            salt: newSalt,
+            hash: newHash
+        })
+
+        newUser.save(function(err, newUser) {
+            if (err) {
+                return console.error(err);
+            }
+
+            sessions[req.cookies['sessionId']] = newUser;
+            return res.send({username: req.user.username, result: 'success'});
+        })
+    });
+
+    /////////////////////////////////////////////////
+
+    /*
     const msg = {
         username: index.user.username,
         status: 'will not change',
     }
 
     res.send(msg);
+    */
 }
 
 
@@ -153,13 +198,11 @@ const loginSuccess = (req, res) => {
     });
 }
 
-var exports = module.exports = {};
-
 exports.endpoints = function(app) {
     app.post('/register', postRegister),
     app.post('/login', postLogin),
     app.put('/logout', isLoggedIn, putLogout),
-    app.put('/password', putPassword),
+    app.put('/password', isLoggedIn, putPassword),
     app.get('/auth/google', authGoogle),
     app.get('/auth/google/callback', authGoogleCallback),
     app.get('/login/success', loginSuccess)

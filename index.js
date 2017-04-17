@@ -111,24 +111,6 @@ var cors = function(req, res, next) {
     return next();
 }
 
-const isLoggedIn = (req, res, next) => {
-
-    if (req.cookies['sessionId']) {
-        var sessionId = req.cookies['sessionId'];
-
-        if (sessionId in sessions) {
-            req.user = sessions[sessionId];
-            console.log(sessionId);
-            console.log(req.user);
-            return next();
-
-        }
-    }
-    
-    return res.sendStatus(401);
-}
-exports.isLoggedIn = isLoggedIn;
-
 app.use(cors);
 app.use(bodyParser.json());
 app.use(cookieParser());

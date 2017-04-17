@@ -1,6 +1,7 @@
 var index = require('../index');
 var models = require('./db/models.js');
-var isLoggedIn = require('../index.js').isLoggedIn;
+var isLoggedIn = require('./auth.js').isLoggedIn;
+let mongoose = require('mongoose')
 
 const sampleArticle = {
     '_id': 0,
@@ -51,7 +52,6 @@ const getArticles = (req, res) => {
         console.log(articles);
         console.log(articles.length);
     });
-    */
 
     if (req.params.id) {
         res.send({
@@ -62,6 +62,23 @@ const getArticles = (req, res) => {
     } else {
         res.send({articles});
     }
+    */
+
+    var query;
+
+    if (req.params.id) {
+        if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+            query = models.Article.find().or([{author: req.params.id}, {_id: mongoose.Types.ObjectId(req.params.id)}]);
+        } else {
+            query = models.Article.find({author: req.params.id});
+        }
+    } else {
+        query = models.Article.find();
+    } 
+
+    query.exec(function(err, articles) {
+        res.send({articles});
+    })
 }
 
 const putArticles = (req, res) => {
@@ -102,6 +119,7 @@ const putArticles = (req, res) => {
 }
 
 const postArticle = (req, res) => {
+    /*
     const newArticle = Object.assign({}, sampleArticle, {
         '_id': articles.length,
         'text': req.body.text,
@@ -112,12 +130,43 @@ const postArticle = (req, res) => {
 	res.send({
         'articles': [newArticle],
     })
+    */
+    /////////////////////////////////////
+
+
+    // Used for node initDatabase.js
+    /*
+    let newArticle = new models.Article({
+        author: req.body.author,
+        date: req.body.date,
+        text: req.body.text,
+        comments: req.body.comments,
+    })
+    */
+    
+    let newArticle = new models.Article({
+        author: req.user.username,
+        date: new Date(),
+        text: req.body.text,
+    })
+
+    newArticle.save(function(err, newArticle) {
+        if (err) {
+            return console.error(err);
+        }
+
+        console.log('saved newArticle');
+        console.log(newArticle);
+
+        let msg = {'articles': newArticle};
+        return res.send(msg);
+    })
 }
 
 var exports =  module.exports = {};
 
 exports.endpoints = function(app) {
-	app.get('/articles/:id*?', getArticles),
+	app.get('/articles/:id*?', isLoggedIn, getArticles),
 	app.put('/articles/:id', putArticles),
-	app.post('/article', postArticle)
+	app.post('/article', isLoggedIn, postArticle)
 }
