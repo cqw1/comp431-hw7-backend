@@ -2,6 +2,7 @@ var index = require('../index');
 var models = require('./db/models.js');
 var isLoggedIn = require('./auth.js').isLoggedIn;
 let mongoose = require('mongoose')
+let md5 = require('md5');
 
 const sampleArticle = {
     '_id': 0,
@@ -64,7 +65,7 @@ const getArticles = (req, res) => {
     }
     */
 
-    var query;
+    let query;
 
     if (req.params.id) {
         if (mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -82,40 +83,76 @@ const getArticles = (req, res) => {
 }
 
 const putArticles = (req, res) => {
+    if (req.params.id) {
+        if (mongoose.Types.ObjectId.isValid(req.params.id)) {
 
-    const filteredArticles = articles.filter(function(el) {
-        return el._id == req.params.id;
-    })
+            let articleId = mongoose.Types.ObjectId(req.params.id);
+            models.Article.find({_id: articleId, author: req.user.username})
+                .exec(function(err, articles) {
+                    if (err) {
+                        return console.error(err);
+                    } else {
+                        if (articles.length < 1) {
+                            return res.sendStatus(400);
+                        }
 
-    let article;
-    if (filteredArticles.length > 0) {
-        article = filteredArticles[0];
-    }
+                        if (req.body.commentId) {
+                            // Editing a comment
+                            if (req.body.commentId == '-1') {
+                                // Creating a new comment.
+                                articles[0].comments.push({
+                                    commentId: md5(req.body.text + Date.now()),
+                                    author: req.user.username,
+                                    date: new Date(),
+                                    text: req.body.text
+                                })
 
-    if (req.body.commentId != undefined) {
-        if (req.body.commentId == -1) {
-            article.comments.push(Object.assign({}, sampleComment, {
-                'commentId': article.comments.length,
-                'text': req.body.text,
-                'date': new Date(),
-            }))
+                            } else {
+                                // Editing existing comment.
+                                articles[0].comments.filter((comment) => {
+                                    return comment.commentId == req.body.commentId;
+                                }).forEach((comment) => { 
+                                    comment.text = req.body.text;
+                                })
+                            }
+
+                            articles[0].save((err, articles) => { if (err) {
+                                    return console.error(err);
+                                }
+                                return res.send({articles});
+                            })
+
+                        } else {
+                            // Editing the article text.
+
+                            articles[0].update({text: req.body.text})
+                                .exec(function(err, raw) {
+                                    if (err) {
+                                        return console.error(err);
+                                    }
+
+                                    return sendArticle(res, articleId);
+                                });
+                        }
+                    }
+                });
         } else {
-            let filteredComment = article.comments.filter(function(comment) {
-                return comment.commentId == req.body.commentId;
-            })
-
-            let comment;
-            if (filteredComment.length > 0) {
-                comment = filteredComment[0];
-            }
-
-            comment.text = req.body.text;
+            return res.sendStatus(400);
         }
     } else {
-        article.text = req.body.text;
-    }
+        return res.sendStatus(400);
+    } 
+}
 
-    res.send({articles});
+const sendArticle = (res, articleId) => {
+    // Return the updated article.
+    models.Article.find({_id: articleId}).exec(function(err, articles) {
+        if (err) {
+            return console.error(err);
+        } else {
+            return res.send({articles});
+        }
+    });
 }
 
 const postArticle = (req, res) => {
@@ -155,9 +192,6 @@ const postArticle = (req, res) => {
             return console.error(err);
         }
 
-        console.log('saved newArticle');
-        console.log(newArticle);
-
         let msg = {'articles': newArticle};
         return res.send(msg);
     })
@@ -167,6 +201,6 @@ var exports =  module.exports = {};
 
 exports.endpoints = function(app) {
 	app.get('/articles/:id*?', isLoggedIn, getArticles),
-	app.put('/articles/:id', putArticles),
+	app.put('/articles/:id', isLoggedIn, putArticles),
 	app.post('/article', isLoggedIn, postArticle)
 }

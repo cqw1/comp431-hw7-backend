@@ -34,8 +34,11 @@ exports.isLoggedIn = isLoggedIn;
 
 const postLogin = (req, res) => {
 
-    // Clear all articles
-    //models.Article.collection.drop();
+    // Clear database
+    /*
+    models.Comment.collection.drop();
+    models.Article.collection.drop();
+    */
 
     if (!req.body.username || !req.body.password) {
         return res.sendStatus(400);
@@ -72,13 +75,28 @@ const postRegister = (req, res) => {
         hash: md5(req.body.password + salt)
     })
 
-    newUser.save(function(err, newUser) {
+    let newProfile = new models.Profile({
+        username: req.body.username,
+        status: '<status>',
+        following: [],
+        email: req.body.email,
+        zipcode: req.body.zipcode,
+        dob: new Date(Date.now(req.body.dob)), // milliseconds
+        picture: '<picture>'
+    })
+
+    newUser.save((err, newUser) => {
         if (err) {
             return console.error(err);
         }
 
-        let msg = {username: newUser.username, result: 'success'};
-        return res.send(msg);
+        newProfile.save((err, newProfile) => {
+            if (err) {
+                return console.error(err);
+            }
+
+            return res.send({username: newUser.username, result: 'success'});
+        })
     })
 }
 

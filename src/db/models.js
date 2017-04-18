@@ -4,7 +4,7 @@ let mongoose = require('mongoose')
 require('./db.js')
 
 let commentSchema = new mongoose.Schema({
-	commentId: Number, 
+	commentId: String, 
     author: String, 
     date: Date, 
     text: String
@@ -30,7 +30,8 @@ let profileSchema = new mongoose.Schema({
     following: [ String ],
     email: String,
     zipcode: String,
-    picture: String    
+    picture: String,
+    dob: Date
 });
 
 
