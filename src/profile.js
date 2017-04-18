@@ -1,32 +1,38 @@
-const index = require('../index');
-const uploadImage = require('./uploadCloudinary')
+let index = require('../index');
+let uploadImage = require('./uploadCloudinary')
 let models = require('./db/models.js');
 var isLoggedIn = require('./auth.js').isLoggedIn;
 
-const getHeadlines = (req, res) => {
+const createUsernameMatches = (req) => {
+    // Creates list of username conditions to 'or' query with in Mongoose.
     let usernameMatches = [];
 
     if (req.params.user) {
-        users = req.params.user.split(",");
-        users.forEach((user) => {
+        req.params.user.split(",").forEach((user) => {
             usernameMatches.push({username: user});
-        });
+        })
     } else {
-        usernameMatches = [{username: req.user.username}];
+        usernameMatches.push({username: req.user.username})
     }
 
-    models.Profile.find().or(usernameMatches).exec((err, profiles) => {a
+    return usernameMatches;
+}
+
+const getHeadlines = (req, res) => {
+    let usernameMatches = createUsernameMatches(req);
+
+    models.Profile.find().or(usernameMatches).exec((err, profiles) => {
         if (err) {
             return console.error(err);
         } else {
             if (profiles.length > 0) {
                 let headlines = [];
                 profiles.forEach((profile) => {
-                    headlines.push(
-                        {
-                            username: profile.username, 
-                            headline: profile.headline
-                        });
+                    // Add each profile match's headline
+                    headlines.push({
+                        username: profile.username, 
+                        headline: profile.headline
+                    });
                 })
 
                 return res.send({headlines});
@@ -44,15 +50,16 @@ const putHeadline = (req, res) => {
                 return console.error(err);
             } else {
                 profiles[0].headline = req.body.headline;
+
+                // Save and return 
                 profiles[0].save((err, profile) => { 
                     if (err) {
                         return console.error(err);
                     }
-                    return res.send(
-                        {
-                            username: req.user.username, 
-                            headline: profile.headline
-                        });
+                    return res.send({
+                        username: req.user.username, 
+                        headline: profile.headline
+                    });
                 })
             }
         });
@@ -80,15 +87,16 @@ const putEmail = (req, res) => {
                 return console.error(err);
             } else {
                 profiles[0].email = req.body.email;
+
+                // Save and return 
                 profiles[0].save((err, profile) => { 
                     if (err) {
                         return console.error(err);
                     }
-                    return res.send(
-                        {
-                            username: req.user.username, 
-                            email: profile.email
-                        });
+                    return res.send({
+                        username: req.user.username, 
+                        email: profile.email
+                    });
                 })
             }
         });
@@ -116,31 +124,23 @@ const putZipcode = (req, res) => {
                 return console.error(err);
             } else {
                 profiles[0].zipcode = req.body.zipcode;
+
+                // Save and return 
                 profiles[0].save((err, profile) => { 
                     if (err) {
                         return console.error(err);
                     }
-                    return res.send(
-                        {
-                            username: req.user.username, 
-                            zipcode: profile.zipcode
-                        });
+                    return res.send({
+                        username: req.user.username, 
+                        zipcode: profile.zipcode
+                    });
                 })
             }
         })
 }
 
 const getAvatars = (req, res) => {
-    let usernameMatches = [];
-
-    if (req.params.user) {
-        users = req.params.user.split(",");
-        users.forEach((user) => {
-            usernameMatches.push({username: user});
-        });
-    } else {
-        usernameMatches = [{username: req.user.username}];
-    }
+    let usernameMatches = createUsernameMatches(req);
 
     models.Profile.find().or(usernameMatches).exec((err, profiles) => {
         if (err) {
@@ -149,11 +149,11 @@ const getAvatars = (req, res) => {
             if (profiles.length > 0) {
                 let avatars = [];
                 profiles.forEach((profile) => {
-                    avatars.push(
-                        {
-                            username: profile.username, 
-                            avatar: profile.avatar
-                        });
+                    // Add each profile match's avatar 
+                    avatars.push({
+                        username: profile.username, 
+                        avatar: profile.avatar
+                    });
                 });
 
                 return res.send({avatars});
@@ -165,6 +165,7 @@ const getAvatars = (req, res) => {
 }
 
 const putAvatar = (req, res) => {
+    // TODO: still stubbed
     res.send({username: req.user.username, avatar: 'stubbed avatar'});
 }
 
@@ -174,11 +175,10 @@ const getDob = (req, res) => {
             if (err) {
                 return console.error(err);
             } else {
-                return res.send(
-                    { 
-                        username: req.user.username, 
-                        dob: profiles[0].dob.getTime()
-                    });
+                return res.send({ 
+                    username: req.user.username, 
+                    dob: profiles[0].dob.getTime()
+                });
             }
         });
 }

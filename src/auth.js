@@ -9,8 +9,6 @@ let passport = index.passport;
 let authRequests = {}
 let authTokens = {}
 
-//let sessions = {};
-
 let secretMessage = "oi183u4ms12on";
 
 var exports = module.exports = {};
@@ -31,7 +29,6 @@ const isLoggedIn = (req, res, next) => {
 }
 exports.isLoggedIn = isLoggedIn;
 
-
 const postLogin = (req, res) => {
 
     // Clear database
@@ -43,14 +40,6 @@ const postLogin = (req, res) => {
     if (!req.body.username || !req.body.password) {
         return res.sendStatus(400);
     }
-
-    /*
-    var index.user = getUser(username);
-    if (!index.user || index.user.password !== password) {
-        res.sendStatus(400);
-        return;
-    }
-    */
 
     models.User.find({username: req.body.username}).exec(function(err, users) {
         if (users.length > 0) {
@@ -69,6 +58,7 @@ const postLogin = (req, res) => {
 const postRegister = (req, res) => {
     let salt = md5(req.body.username + Date.now());
 
+    // Create a user and profile object to save to db.
     let newUser = new models.User({
         username: req.body.username,
         salt: salt,
@@ -101,6 +91,7 @@ const postRegister = (req, res) => {
 }
 
 const putLogout = (req, res) => {
+    // Clear session and cookie
     delete sessions[req.cookies['sessionId']];
     res.clearCookie('sessionId');
 
@@ -111,37 +102,31 @@ const putPassword = (req, res) => {
     let newSalt = req.user.username + Date.now();
     let newHash = md5(req.body.password + newSalt);
 
-    models.User.remove({username: req.user.username}).exec(function(err, result) {
-        if (err) {
-            return console.error(err);
-        }
-
-        let newUser = new models.User({
-            username: req.user.username,
-            salt: newSalt,
-            hash: newHash
-        })
-
-        newUser.save(function(err, newUser) {
+    // Clean up old db objects and save new ones
+    models.User.remove({username: req.user.username})
+        .exec(function(err, result) {
             if (err) {
                 return console.error(err);
             }
 
-            sessions[req.cookies['sessionId']] = newUser;
-            return res.send({username: req.user.username, result: 'success'});
-        })
-    });
+            let newUser = new models.User({
+                username: req.user.username,
+                salt: newSalt,
+                hash: newHash
+            })
 
-    /////////////////////////////////////////////////
+            newUser.save(function(err, newUser) {
+                if (err) {
+                    return console.error(err);
+                }
 
-    /*
-    const msg = {
-        username: index.user.username,
-        status: 'will not change',
-    }
-
-    res.send(msg);
-    */
+                sessions[req.cookies['sessionId']] = newUser;
+                return res.send({
+                    username: req.user.username, 
+                    result: 'success'
+                });
+            })
+        });
 }
 
 
@@ -178,25 +163,6 @@ const getUsername = (req) => {
 }
 
 const loginSuccess = (req, res) => {
-    /*
-    let username;
-    if (req.body.username) {
-        username = req.body.username;
-    } else {
-        username = 'default user';
-    }
-
-    index.user.username = username;
-    */
-
-
-    /*
-    redis.hmset(sessions[username], index.user);
-    redis.hgetall(sessions[username], function(err, userObj) {
-        console.log(sessions[username] + ' mapped to ' + userObj);
-    })
-    */
-
     var username = getUsername(req);
     var sessionId = md5(secretMessage + username + Date.now());
 
