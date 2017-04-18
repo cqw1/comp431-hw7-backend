@@ -30,7 +30,7 @@ let profileSchema = new mongoose.Schema({
     following: [ String ],
     email: String,
     zipcode: String,
-    picture: String,
+    avatar: String,
     dob: Date
 });
 

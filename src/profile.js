@@ -4,9 +4,8 @@ let models = require('./db/models.js');
 var isLoggedIn = require('./auth.js').isLoggedIn;
 
 const getHeadlines = (req, res) => {
-    headlines = [];
-
     let usernameMatches = [];
+
     if (req.params.user) {
         users = req.params.user.split(",");
         users.forEach((user) => {
@@ -119,18 +118,37 @@ const putZipcode = (req, res) => {
 }
 
 const getAvatars = (req, res) => {
-    avatars = [];
+    let usernameMatches = [];
 
     if (req.params.user) {
         users = req.params.user.split(",");
-        users.forEach(function(user) {
-            avatars.push({username: user, avatar: user + ' stub avatar'});
-        })
+        users.forEach((user) => {
+            usernameMatches.push({username: user});
+        });
     } else {
-        avatars.push({username: index.user.username, avatar: index.profile.avatar});
+        usernameMatches = [{username: req.user.username}];
     }
 
-    res.send({ avatars });
+    models.Profile.find().or(usernameMatches).exec((err, profiles) => {
+        if (err) {
+            return console.error(err);
+        } else {
+            if (profiles.length > 0) {
+                let avatars = [];
+                profiles.forEach((profile) => {
+                    avatars.push(
+                        {
+                            username: profile.username, 
+                            avatar: profile.avatar
+                        });
+                });
+
+                return res.send({avatars});
+            } else {
+                return res.sendStatus(400);
+            }
+        }
+    });
 }
 
 const putAvatar = (req, res) => {
