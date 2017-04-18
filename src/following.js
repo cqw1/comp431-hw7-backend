@@ -1,4 +1,6 @@
 const index = require('../index');
+let models = require('./db/models.js');
+var isLoggedIn = require('./auth.js').isLoggedIn;
 
 const sampleFollowing = [
     'john',
@@ -7,17 +9,18 @@ const sampleFollowing = [
 ];
 
 const getFollowing = (req, res) => {
-    let username = index.user.username;
+    let username = req.user.username;
     if (req.params.user) {
         username = req.params.user;
     }
 
-    const msg = {
-        username,
-        following: sampleFollowing
-    };
-
-    res.send(msg);
+    models.Profile.find({username}).exec((err, profiles) => {
+        if (err) {
+            return console.error(err);
+        } else {
+            return res.send({username, following: profiles[0].following});
+        }
+    })
 }
 
 const putFollowing = (req, res) => {
@@ -45,7 +48,7 @@ const deleteFollowing = (req, res) => {
 var exports =  module.exports = {};
 
 exports.endpoints = function(app) {
-	app.get('/following/:user?', getFollowing),
-	app.put('/following/:user', putFollowing),
-	app.delete('/following/:user', deleteFollowing)
+	app.get('/following/:user?', isLoggedIn, getFollowing),
+	app.put('/following/:user', isLoggedIn, putFollowing),
+	app.delete('/following/:user', isLoggedIn, deleteFollowing)
 }

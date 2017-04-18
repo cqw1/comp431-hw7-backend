@@ -15,7 +15,7 @@ const getHeadlines = (req, res) => {
         usernameMatches = [{username: req.user.username}];
     }
 
-    models.Profile.find().or(usernameMatches).exec((err, profiles) => {
+    models.Profile.find().or(usernameMatches).exec((err, profiles) => {a
         if (err) {
             return console.error(err);
         } else {
@@ -38,20 +38,24 @@ const getHeadlines = (req, res) => {
 }
 
 const putHeadline = (req, res) => {
-
-    models.Profile.find({username: req.user.username}).exec((err, profiles) => {
-        if (err) {
-            return console.error(err);
-        } else {
-            profiles[0].headline = req.body.headline;
-            profiles[0].save((err, profile) => { 
-                if (err) {
-                    return console.error(err);
-                }
-                return res.send({username: req.user.username, headline: profile.headline});
-            })
-        }
-    })
+    models.Profile.find({username: req.user.username})
+        .exec((err, profiles) => {
+            if (err) {
+                return console.error(err);
+            } else {
+                profiles[0].headline = req.body.headline;
+                profiles[0].save((err, profile) => { 
+                    if (err) {
+                        return console.error(err);
+                    }
+                    return res.send(
+                        {
+                            username: req.user.username, 
+                            headline: profile.headline
+                        });
+                })
+            }
+        });
 }
 
 const getEmail = (req, res) => {
@@ -70,20 +74,24 @@ const getEmail = (req, res) => {
 }
 
 const putEmail = (req, res) => {
-
-    models.Profile.find({username: req.user.username}).exec((err, profiles) => {
-        if (err) {
-            return console.error(err);
-        } else {
-            profiles[0].email = req.body.email;
-            profiles[0].save((err, profile) => { 
-                if (err) {
-                    return console.error(err);
-                }
-                return res.send({username: req.user.username, email: profile.email});
-            })
-        }
-    })
+    models.Profile.find({username: req.user.username})
+        .exec((err, profiles) => {
+            if (err) {
+                return console.error(err);
+            } else {
+                profiles[0].email = req.body.email;
+                profiles[0].save((err, profile) => { 
+                    if (err) {
+                        return console.error(err);
+                    }
+                    return res.send(
+                        {
+                            username: req.user.username, 
+                            email: profile.email
+                        });
+                })
+            }
+        });
 }
 
 const getZipcode = (req, res) => {
@@ -102,19 +110,24 @@ const getZipcode = (req, res) => {
 }
 
 const putZipcode = (req, res) => {
-    models.Profile.find({username: req.user.username}).exec((err, profiles) => {
-        if (err) {
-            return console.error(err);
-        } else {
-            profiles[0].zipcode = req.body.zipcode;
-            profiles[0].save((err, profile) => { 
-                if (err) {
-                    return console.error(err);
-                }
-                return res.send({username: req.user.username, zipcode: profile.zipcode});
-            })
-        }
-    })
+    models.Profile.find({username: req.user.username})
+        .exec((err, profiles) => {
+            if (err) {
+                return console.error(err);
+            } else {
+                profiles[0].zipcode = req.body.zipcode;
+                profiles[0].save((err, profile) => { 
+                    if (err) {
+                        return console.error(err);
+                    }
+                    return res.send(
+                        {
+                            username: req.user.username, 
+                            zipcode: profile.zipcode
+                        });
+                })
+            }
+        })
 }
 
 const getAvatars = (req, res) => {
@@ -152,20 +165,22 @@ const getAvatars = (req, res) => {
 }
 
 const putAvatar = (req, res) => {
-    index.profile.avatar = req.body.avatar;
-    console.log(req.fileurl);
-    console.log(req.fileid);
-    res.send({username: index.user.username, avatar: index.profile.avatar});
+    res.send({username: req.user.username, avatar: 'stubbed avatar'});
 }
 
 const getDob = (req, res) => {
-    models.Profile.find({username: req.user.username}).exec((err, profiles) => {
-        if (err) {
-            return console.error(err);
-        } else {
-            return res.send({username: req.user.username, dob: profiles[0].dob.getTime()});
-        }
-    })
+    models.Profile.find({username: req.user.username})
+        .exec((err, profiles) => {
+            if (err) {
+                return console.error(err);
+            } else {
+                return res.send(
+                    { 
+                        username: req.user.username, 
+                        dob: profiles[0].dob.getTime()
+                    });
+            }
+        });
 }
 
 const getIndex = (req, res) => {
@@ -185,5 +200,5 @@ exports.endpoints = function(app) {
     //app.put('/avatar', putAvatar),
     app.get('/dob', isLoggedIn, getDob),
     app.get('/', getIndex),
-    app.put('/avatar', uploadImage('avatar'), putAvatar)
+    app.put('/avatar', isLoggedIn, uploadImage('avatar'), putAvatar)
 }
