@@ -24,25 +24,50 @@ const getFollowing = (req, res) => {
 }
 
 const putFollowing = (req, res) => {
-    const msg = {
-        username: index.user.username,
-        following: [req.params.user, ...sampleFollowing]
-    };
+    models.Profile.find({username: req.user.username})
+        .exec((err, profiles) => {
+            if (err) {
+                return console.error(err);
+            } else {
+                profiles[0].following.push(req.params.user);
+                profiles[0].save((err, profile) => {
+                    if (err) {
+                        return console.error(err);
+                    } 
 
-    res.send(msg);
+                    return res.send(
+                        {
+                            username: req.user.username, 
+                            following: profile.following
+                        });
+                })
+            }
+        })
 }
 
 const deleteFollowing = (req, res) => {
-    const deleted = sampleFollowing.filter(function (user) {
-        return user != req.params.user;
-    })
+    models.Profile.find({username: req.user.username})
+        .exec((err, profiles) => {
+            if (err) {
+                return console.error(err);
+            } else {
+                profiles[0].following = 
+                    profiles[0].following.filter((follower) => {
+                        return follower != req.params.user;
+                    })
+                profiles[0].save((err, profile) => {
+                    if (err) {
+                        return console.error(err);
+                    } 
 
-    const msg = {
-        username: index.user.username,
-        following: deleted,
-    };
-
-    res.send(msg);
+                    return res.send(
+                        {
+                            username: req.user.username, 
+                            following: profile.following
+                        });
+                })
+            }
+        })
 }
 
 var exports =  module.exports = {};
