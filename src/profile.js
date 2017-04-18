@@ -1,40 +1,37 @@
 const index = require('../index');
 const uploadImage = require('./uploadCloudinary')
-
-const getHeadline = (req, res) => {
-    headlines = [];
-
-    if (req.params.user == index.user.username || !req.params.user) {
-        headlines.push({ 
-            username: index.user.username, 
-            headline: index.profile.headline 
-        });
-    } else {
-        headlines.push({ 
-            username: req.params.user, 
-            headline: req.params.user + ' stub headline'
-        });
-    }
-
-    res.send({headlines});
-}
+let models = require('./db/models.js');
+var isLoggedIn = require('./auth.js').isLoggedIn;
 
 const getHeadlines = (req, res) => {
     headlines = [];
 
+    let usernameMatches = [];
     if (req.params.user) {
         users = req.params.user.split(",");
         users.forEach(function(user) {
-            headlines.push({ username: user, headline: user + ' stub headline'});
-        })
-    } else {
-        headlines.push({ 
-            username: index.user.username, 
-            headline: index.profile.headline 
+            usernameMatches.push({username: user});
         });
+    } else {
+        usernameMatches = [{username: req.user.username}];
     }
 
-    res.send({headlines});
+    models.Profile.find().or(usernameMatches).exec(function(err, profiles) {
+        if (err) {
+            return console.error(err);
+        } else {
+            if (profiles.length > 0) {
+                let headlines = [];
+                profiles.forEach((profile) => {
+                    headlines.push({username: profile.username, headline: profile.status});
+                })
+
+                return res.send({headlines});
+            } else {
+                return res.sendStatus(400);
+            }
+        }
+    });
 }
 
 const putHeadline = (req, res) => {
@@ -103,16 +100,15 @@ const getIndex = (req, res) => {
 var exports =  module.exports = {};
 
 exports.endpoints = function(app) {
-    app.get('/headline/:user?', getHeadline),
-    app.get('/headlines/:user?', getHeadlines),
-    app.put('/headline', putHeadline),
-    app.get('/email/:user?', getEmail),
-    app.put('/email', putEmail),
-    app.get('/zipcode/:user?', getZipcode),
-    app.put('/zipcode', putZipcode),
-    app.get('/avatars/:user?', getAvatars),
+    app.get('/headlines/:user?', isLoggedIn, getHeadlines),
+    app.put('/headline', isLoggedIn, putHeadline),
+    app.get('/email/:user?', isLoggedIn, getEmail),
+    app.put('/email', isLoggedIn, putEmail),
+    app.get('/zipcode/:user?', isLoggedIn, getZipcode),
+    app.put('/zipcode', isLoggedIn, putZipcode),
+    app.get('/avatars/:user?', isLoggedIn, getAvatars),
     //app.put('/avatar', putAvatar),
-    app.get('/dob', getDob),
+    app.get('/dob', isLoggedIn, getDob),
     app.get('/', getIndex),
     app.put('/avatar', uploadImage('avatar'), putAvatar)
 }
