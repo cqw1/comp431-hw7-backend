@@ -141,7 +141,13 @@ const putAvatar = (req, res) => {
 }
 
 const getDob = (req, res) => {
-    res.send({username: index.user.username, dob: index.profile.dob});
+    models.Profile.find({username: req.user.username}).exec((err, profiles) => {
+        if (err) {
+            return console.error(err);
+        } else {
+            return res.send({username: req.user.username, dob: profiles[0].dob.getTime()});
+        }
+    })
 }
 
 const getIndex = (req, res) => {
