@@ -9,21 +9,25 @@ const getHeadlines = (req, res) => {
     let usernameMatches = [];
     if (req.params.user) {
         users = req.params.user.split(",");
-        users.forEach(function(user) {
+        users.forEach((user) => {
             usernameMatches.push({username: user});
         });
     } else {
         usernameMatches = [{username: req.user.username}];
     }
 
-    models.Profile.find().or(usernameMatches).exec(function(err, profiles) {
+    models.Profile.find().or(usernameMatches).exec((err, profiles) => {
         if (err) {
             return console.error(err);
         } else {
             if (profiles.length > 0) {
                 let headlines = [];
                 profiles.forEach((profile) => {
-                    headlines.push({username: profile.username, headline: profile.status});
+                    headlines.push(
+                        {
+                            username: profile.username, 
+                            headline: profile.headline
+                        });
                 })
 
                 return res.send({headlines});
@@ -35,8 +39,20 @@ const getHeadlines = (req, res) => {
 }
 
 const putHeadline = (req, res) => {
-    index.profile.headline = req.body.headline;
-    res.send({username: index.user.username, headline: index.profile.headline});
+
+    models.Profile.find({username: req.user.username}).exec((err, profiles) => {
+        if (err) {
+            return console.error(err);
+        } else {
+            profiles[0].headline = req.body.headline;
+            profiles[0].save((err, profile) => { 
+                if (err) {
+                    return console.error(err);
+                }
+                return res.send({username: req.user.username, headline: profile.headline});
+            })
+        }
+    })
 }
 
 const getEmail = (req, res) => {

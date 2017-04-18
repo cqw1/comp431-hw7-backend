@@ -26,7 +26,7 @@ let userSchema = new mongoose.Schema({
 
 let profileSchema = new mongoose.Schema({
     username: String,
-    status: String,
+    headline: String,
     following: [ String ],
     email: String,
     zipcode: String,

@@ -77,7 +77,7 @@ const postRegister = (req, res) => {
 
     let newProfile = new models.Profile({
         username: req.body.username,
-        status: '<status>',
+        headline: '<headline>',
         following: [],
         email: req.body.email,
         zipcode: req.body.zipcode,
