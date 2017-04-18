@@ -65,7 +65,7 @@ const getEmail = (req, res) => {
         if (err) {
             return console.error(err);
         } else {
-            return res.send({username: req.user.username, email: profiles[0].email});
+            return res.send({username, email: profiles[0].email});
         }
     })
 }
@@ -88,18 +88,34 @@ const putEmail = (req, res) => {
 }
 
 const getZipcode = (req, res) => {
-    var username = index.user.username;
-
+    let username = req.user.username;
     if (req.params.user) {
         username = req.params.user;
     }
 
-    res.send({username, zipcode: index.profile.zipcode});
+    models.Profile.find({username}).exec((err, profiles) => {
+        if (err) {
+            return console.error(err);
+        } else {
+            return res.send({username, zipcode: profiles[0].zipcode});
+        }
+    })
 }
 
 const putZipcode = (req, res) => {
-    index.profile.zipcode = req.body.zipcode;
-    res.send({username: index.user.username, zipcode: index.profile.zipcode});
+    models.Profile.find({username: req.user.username}).exec((err, profiles) => {
+        if (err) {
+            return console.error(err);
+        } else {
+            profiles[0].zipcode = req.body.zipcode;
+            profiles[0].save((err, profile) => { 
+                if (err) {
+                    return console.error(err);
+                }
+                return res.send({username: req.user.username, zipcode: profile.zipcode});
+            })
+        }
+    })
 }
 
 const getAvatars = (req, res) => {
