@@ -56,16 +56,35 @@ const putHeadline = (req, res) => {
 }
 
 const getEmail = (req, res) => {
-    var username = index.user.username;
+    let username = req.user.username;
     if (req.params.user) {
         username = req.params.user;
     }
-    res.send({username, email: index.profile.email});
+
+    models.Profile.find({username}).exec((err, profiles) => {
+        if (err) {
+            return console.error(err);
+        } else {
+            return res.send({username: req.user.username, email: profiles[0].email});
+        }
+    })
 }
 
 const putEmail = (req, res) => {
-    index.profile.email = req.body.email;
-    res.send({username: index.user.username, email: index.profile.email});
+
+    models.Profile.find({username: req.user.username}).exec((err, profiles) => {
+        if (err) {
+            return console.error(err);
+        } else {
+            profiles[0].email = req.body.email;
+            profiles[0].save((err, profile) => { 
+                if (err) {
+                    return console.error(err);
+                }
+                return res.send({username: req.user.username, email: profile.email});
+            })
+        }
+    })
 }
 
 const getZipcode = (req, res) => {
