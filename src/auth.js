@@ -189,7 +189,7 @@ const checkLoggedIn = (req, res) => {
         if (sessionId in sessions) {
             return res.send({
                 isLoggedIn: true,
-                username: req.user.username,
+                username: sessions[sessionId];
             })
         }
     }
@@ -205,5 +205,5 @@ exports.endpoints = function(app) {
     app.get('/auth/google', authGoogle),
     app.get('/auth/google/callback', authGoogleCallback),
     app.get('/login/success', loginSuccess),
-    app.get('/checkLoggedIn', isLoggedIn, checkLoggedIn)
+    app.get('/checkLoggedIn', checkLoggedIn)
 }
