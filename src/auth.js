@@ -189,7 +189,7 @@ const checkLoggedIn = (req, res) => {
         if (sessionId in sessions) {
             return res.send({
                 isLoggedIn: true,
-                username: sessions[sessionId];
+                username: sessions[sessionId],
             })
         }
     }
