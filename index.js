@@ -111,6 +111,18 @@ var cors = function(req, res, next) {
     return next();
 }
 
+const checkLoggedIn = (req, res) => {
+    if (req.cookies['sessionId']) {
+        var sessionId = req.cookies['sessionId'];
+
+        if (sessionId in sessions) {
+            return res.send({loggedIn: true})
+        }
+    }
+
+    return res.send({loggedIn: false});
+}
+
 app.use(cors);
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -121,6 +133,7 @@ require('./src/profile').endpoints(app);
 require('./src/articles').endpoints(app);
 require('./src/auth').endpoints(app);
 require('./src/following').endpoints(app);
+app.get('/checkLoggedIn', checkLoggedIn);
 
 if (process.env.NODE_ENV !== 'production') {
     require('dot-env')
