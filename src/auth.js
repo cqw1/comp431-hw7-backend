@@ -72,7 +72,7 @@ const postRegister = (req, res) => {
         email: req.body.email,
         zipcode: req.body.zipcode,
         dob: new Date(Date.now(req.body.dob)), // milliseconds
-        picture: '<picture>'
+        avatar: 'https://parade.com/wp-content/uploads/2014/03/Why-Do-Stars-All-Look-Almost-the-Same-Size-ftr.jpg'
     })
 
     newUser.save((err, newUser) => {
