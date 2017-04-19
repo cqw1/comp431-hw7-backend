@@ -182,6 +182,21 @@ const loginSuccess = (req, res) => {
     });
 }
 
+const checkLoggedIn = (req, res) => {
+    if (req.cookies['sessionId']) {
+        var sessionId = req.cookies['sessionId'];
+
+        if (sessionId in sessions) {
+            return res.send({
+                isLoggedIn: true,
+                username: req.user.username,
+            })
+        }
+    }
+
+    return res.send({loggedIn: false});
+}
+
 exports.endpoints = function(app) {
     app.post('/register', postRegister),
     app.post('/login', postLogin),
@@ -189,5 +204,6 @@ exports.endpoints = function(app) {
     app.put('/password', isLoggedIn, putPassword),
     app.get('/auth/google', authGoogle),
     app.get('/auth/google/callback', authGoogleCallback),
-    app.get('/login/success', loginSuccess)
+    app.get('/login/success', loginSuccess),
+    app.get('/checkLoggedIn', isLoggedIn, checkLoggedIn)
 }
