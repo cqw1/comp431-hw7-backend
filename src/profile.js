@@ -1,7 +1,7 @@
 let index = require('../index');
 let uploadImage = require('./uploadCloudinary')
 let models = require('./db/models.js');
-var isLoggedIn = require('./auth.js').isLoggedIn;
+let isLoggedIn = require('./auth.js').isLoggedIn;
 
 const createUsernameMatches = (req) => {
     // Creates list of username conditions to 'or' query with in Mongoose.

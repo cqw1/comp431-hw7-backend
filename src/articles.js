@@ -1,6 +1,6 @@
-var index = require('../index');
-var models = require('./db/models.js');
-var isLoggedIn = require('./auth.js').isLoggedIn;
+let index = require('../index');
+let models = require('./db/models.js');
+let isLoggedIn = require('./auth.js').isLoggedIn;
 let mongoose = require('mongoose')
 let md5 = require('md5');
 

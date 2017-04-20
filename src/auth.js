@@ -1,22 +1,18 @@
 let md5 = require('md5');
 let index = require('../index');
-//let redis = require('redis').createClient(process.env.REDIS_URL);
 let models = require('./db/models.js');
 let sessions = require('../index.js').sessions;
 
 let passport = index.passport;
 
-let authRequests = {}
-let authTokens = {}
-
-let secretMessage = "oi183u4ms12on";
+let secretMessage = 'oi183u4ms12on';
 
 var exports = module.exports = {};
 
 const isLoggedIn = (req, res, next) => {
 
     if (req.cookies['sessionId']) {
-        var sessionId = req.cookies['sessionId'];
+        let sessionId = req.cookies['sessionId'];
 
         if (sessionId in sessions) {
             req.user = sessions[sessionId];
@@ -31,19 +27,13 @@ exports.isLoggedIn = isLoggedIn;
 
 const postLogin = (req, res) => {
 
-    // Clear database
-    /*
-    models.Comment.collection.drop();
-    models.Article.collection.drop();
-    */
-
     if (!req.body.username || !req.body.password) {
         return res.sendStatus(400);
     }
 
     models.User.find({username: req.body.username}).exec(function(err, users) {
         if (users.length > 0) {
-            var hash = md5(req.body.password + users[0].salt);
+            let hash = md5(req.body.password + users[0].salt);
             if (users[0].hash == hash) {
                 loginSuccess(req, res);
             } else {
@@ -99,7 +89,7 @@ const putLogout = (req, res) => {
 }
 
 const putPassword = (req, res) => {
-    let newSalt = req.user.username + Date.now();
+    let newSalt = md5(req.user.username + Date.now());
     let newHash = md5(req.body.password + newSalt);
 
     // Clean up old db objects and save new ones
@@ -151,7 +141,7 @@ const authGoogleCallback = passport.authenticate('google', {
 });
 
 const getUsername = (req) => {
-    var username;
+    let username;
 
     if (req.body.username) {
         username = req.body.username;
@@ -163,8 +153,8 @@ const getUsername = (req) => {
 }
 
 const loginSuccess = (req, res) => {
-    var username = getUsername(req);
-    var sessionId = md5(secretMessage + username + Date.now());
+    let username = getUsername(req);
+    let sessionId = md5(secretMessage + username + Date.now());
 
     models.User.find({username: req.body.username}).exec(function(err, users) {
         if (users.length > 0) {
@@ -174,7 +164,7 @@ const loginSuccess = (req, res) => {
             res.cookie('sessionId', sessionId,
                     {maxAge: 3600 * 1000, httpOnly: true});
 
-            var msg = {username: req.body.username, result: 'success'};
+            let msg = {username: req.body.username, result: 'success'};
             return res.send(msg);
         } else {
             return res.sendStatus(401);
@@ -184,7 +174,7 @@ const loginSuccess = (req, res) => {
 
 const checkLoggedIn = (req, res) => {
     if (req.cookies['sessionId']) {
-        var sessionId = req.cookies['sessionId'];
+        let sessionId = req.cookies['sessionId'];
 
         if (sessionId in sessions) {
             return res.send({
@@ -194,7 +184,7 @@ const checkLoggedIn = (req, res) => {
         }
     }
 
-    return res.send({loggedIn: false});
+    return res.send({isLoggedIn: false});
 }
 
 exports.endpoints = function(app) {

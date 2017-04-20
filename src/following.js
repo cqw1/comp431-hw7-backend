@@ -1,6 +1,6 @@
 let index = require('../index');
 let models = require('./db/models.js');
-var isLoggedIn = require('./auth.js').isLoggedIn;
+let isLoggedIn = require('./auth.js').isLoggedIn;
 
 const getFollowing = (req, res) => {
     let username = req.user.username;

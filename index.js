@@ -44,12 +44,17 @@ passport.deserializeUser(function(obj, done) {
 passport.use(new GoogleStrategy({
     clientID:     GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,
-    //NOTE :
-    //Carefull ! and avoid usage of Private IP, otherwise you will get the device_id device_name issue for Private IP during authentication
-    //The workaround is to set up thru the google cloud console a fully qualified domain name such as http://mydomain:3000/ 
-    //then edit your /etc/hosts local file to point on your private IP. 
-    //Also both sign-in button + callbackURL has to be share the same url, otherwise two cookies will be created and lead to lost your session
-    //if you use it.}))
+    /** 
+     * NOTE :
+     * Carefull ! and avoid usage of Private IP, otherwise you will get the 
+     * device_id device_name issue for Private IP during authenticationa
+     * The workaround is to set up thru the google cloud console a fully 
+     * qualified domain name such as http://mydomain:3000/ then edit your 
+     * /etc/hosts local file to point on your private IP.  Also both sign-in 
+     * button + callbackURL has to be share the same url, otherwise two 
+     * cookies will be created and lead to lost your session
+     * if you use it.}))
+     */
     callbackURL: "http://localhost:3000/auth/google/callback",
     passReqToCallback   : true
 },
@@ -64,22 +69,6 @@ function(request, accessToken, refreshToken, profile, done) {
     });
   }
 ));
-
-const user = {
-    'username': 'stub username',
-    'salt': '',
-    'hash': '',
-};
-exports.user = user;
-
-const profile = {
-    'avatar': 'stub avatar',
-    'email': 'stub email',
-    'dob': 'stub dob',
-    'zipcode': 'stub zipcode',
-    'headline': 'stub headline',
-};
-exports.profile = profile;
 
 const resource = (method, endpoint, payload) => {
 	const url = `http://localhost:3000/${endpoint}`

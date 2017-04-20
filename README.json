@@ -1,4 +1,5 @@
 {
     "netid": "cqw1",
-    "backend": "https://cqw1-comp431-backend.herokuapp.com"
+    "frontend": "https://dapper-things.surge.sh",
+    "backend": "https://intense-depths-37739.herokuapp.com/"
 }
