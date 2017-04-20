@@ -23,20 +23,32 @@ const putFollowing = (req, res) => {
             if (err) {
                 return console.error(err);
             } else {
-                // Add user to following
-                profiles[0].following.push(req.params.user);
+                // Make sure the user we're trying to follow exists.
+                models.Profile.find({username: req.params.user})
+                    .exec((err, following) => {
+                        if (err) {
+                            return console.error(err);
+                        } else if (following.length < 1) {
+                            res.status(400);
+                            return res.send(
+                                    'No user ' + req.params.user + ' found.');
+                        }
 
-                // Save changes and return
-                profiles[0].save((err, profile) => {
-                    if (err) {
-                        return console.error(err);
-                    } 
+                        // Add user to following
+                        profiles[0].following.push(req.params.user);
 
-                    return res.send({
-                        username: req.user.username, 
-                        following: profile.following
-                    });
-                })
+                        // Save changes and return
+                        profiles[0].save((err, profile) => {
+                            if (err) {
+                                return console.error(err);
+                            } 
+
+                            return res.send({
+                                username: req.user.username, 
+                                following: profile.following
+                            });
+                        })
+                    })
             }
         })
 }
