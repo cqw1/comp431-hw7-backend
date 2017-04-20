@@ -25,6 +25,63 @@ const getArticles = (req, res) => {
     })
 }
 
+const createComment = (req, res, articleId) => {
+    models.Article.find({_id: articleId}).exec((err, articles) => {
+        articles[0].comments.push({
+            commentId: md5(req.body.text + Date.now()),
+            author: req.user.username,
+            date: new Date(),
+            text: req.body.text
+        })
+
+        return saveAndSendArticle(res, articles[0]);
+    });
+}
+
+const editComment = (req, res, articleId) => {
+    models.Article.find({_id: articleId}).exec((err, articles) => {
+        let comments = articles[0].comments.filter((comment) => {
+            // Check if commentId matches and if user is 
+            // author of comment.
+            return (comment.commentId == req.body.commentId && 
+                    comment.author == req.user.username);
+        });
+
+        if (comments.length < 1) {
+            return res.send(400);
+        }
+        
+        comments.forEach((comment) => { 
+            comment.text = req.body.text;
+        })
+
+        return saveAndSendArticle(res, articles[0]);
+    });
+}
+
+const editArticle = (req, res, articleId) => {
+    models.Article.find({_id: articleId, author: req.user.username})
+        .exec(function(err, articles) {
+            if (err) {
+                return console.error(err);
+            } else {
+                if (articles.length < 1) {
+                    return res.sendStatus(400);
+                }
+
+                // Editing the article text.
+                articles[0].update({text: req.body.text})
+                    .exec(function(err, raw) {
+                        if (err) {
+                            return console.error(err);
+                        }
+
+                        return sendArticleById(res, articleId);
+                    });
+            }
+        });
+}
+
 const putArticles = (req, res) => {
     if (!req.params.id) {
         return res.sendStatus(400);
@@ -40,60 +97,16 @@ const putArticles = (req, res) => {
         // Editing a comment
         if (req.body.commentId == '-1' || req.body.commentId == -1) {
             // Creating a new comment.
-            models.Article.find({_id: articleId}).exec((err, articles) => {
-                articles[0].comments.push({
-                    commentId: md5(req.body.text + Date.now()),
-                    author: req.user.username,
-                    date: new Date(),
-                    text: req.body.text
-                })
-
-                return saveAndSendArticle(res, articles[0]);
-            });
+            return createComment(req, res, articleId);
 
         } else {
             // Editing existing comment.
-            models.Article.find({_id: articleId}).exec((err, articles) => {
-                let comments = articles[0].comments.filter((comment) => {
-                    // Check if commentId matches and if user is 
-                    // author of comment.
-                    return (comment.commentId == req.body.commentId && 
-                            comment.author == req.user.username);
-                });
-
-                if (comments.length < 1) {
-                    return res.send(400);
-                }
-                
-                comments.forEach((comment) => { 
-                    comment.text = req.body.text;
-                })
-
-                return saveAndSendArticle(res, articles[0]);
-            });
+            return editComment(req, res, articleId);
         }
 
     } else {
-        models.Article.find({_id: articleId, author: req.user.username})
-            .exec(function(err, articles) {
-                if (err) {
-                    return console.error(err);
-                } else {
-                    if (articles.length < 1) {
-                        return res.sendStatus(400);
-                    }
-
-                    // Editing the article text.
-                    articles[0].update({text: req.body.text})
-                        .exec(function(err, raw) {
-                            if (err) {
-                                return console.error(err);
-                            }
-
-                            return sendArticleById(res, articleId);
-                        });
-                }
-            });
+        // Edit article
+        return editArticle(req, res, articleId);
     }
 }
 
